@@ -1,6 +1,5 @@
 """Streamlit web app — US Stock Theme Analyzer."""
 
-import os
 from datetime import datetime
 
 import pandas as pd
@@ -15,13 +14,6 @@ from charts import (
 )
 from fetcher import fetch_company
 from themes import THEMES
-
-
-def _get_api_key() -> str:
-    try:
-        return st.secrets["FMP_API_KEY"]
-    except Exception:
-        return os.environ.get("FMP_API_KEY", "")
 
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -91,17 +83,17 @@ run_btn = st.button("🚀 분석 시작", type="primary", use_container_width=Tr
 
 # ── Cached fetch per ticker ───────────────────────────────────────────────────
 @st.cache_data(ttl=3600, show_spinner=False)
-def _fetch_cached(ticker: str, api_key: str):
-    return fetch_company(ticker, api_key)
+def _fetch_cached(ticker: str):
+    return fetch_company(ticker)
 
 
-def fetch_with_progress(tickers: list, api_key: str) -> dict:
+def fetch_with_progress(tickers: list) -> dict:
     bar    = st.progress(0, text="데이터 수집 중...")
     status = st.empty()
     results = {}
     for i, ticker in enumerate(tickers):
         status.caption(f"📡 {ticker} 수집 중 ({i + 1}/{len(tickers)})")
-        data = _fetch_cached(ticker, api_key)
+        data = _fetch_cached(ticker)
         if data and "_error" not in data:
             results[ticker] = data
         elif data and "_error" in data:
@@ -124,14 +116,9 @@ if run_btn:
         tickers    = THEMES[key]["tickers"][:top_n]
         theme_name = THEMES[key]["name"]
 
-    api_key = _get_api_key()
-    if not api_key:
-        st.error("FMP API 키가 설정되지 않았습니다. Streamlit Cloud Secrets에 FMP_API_KEY를 추가해주세요.")
-        st.stop()
-
     st.info(f"**{theme_name}** — {', '.join(tickers)}", icon="🔍")
 
-    raw_data = fetch_with_progress(tickers, api_key)
+    raw_data = fetch_with_progress(tickers)
     if not raw_data:
         st.error("데이터를 가져오지 못했습니다.")
         st.stop()

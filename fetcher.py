@@ -93,8 +93,8 @@ def fetch_company(ticker: str, api_key: str) -> Optional[Dict]:
             "balance_sheet": pd.DataFrame(),
             "price_history": price_hist,
         }
-    except Exception:
-        return None
+    except Exception as e:
+        return {"_error": str(e), "ticker": ticker}
 
 
 def fetch_theme_data(tickers: List[str], api_key: str, console: Console) -> Dict[str, Dict]:

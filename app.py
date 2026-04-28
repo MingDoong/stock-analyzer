@@ -102,8 +102,10 @@ def fetch_with_progress(tickers: list, api_key: str) -> dict:
     for i, ticker in enumerate(tickers):
         status.caption(f"📡 {ticker} 수집 중 ({i + 1}/{len(tickers)})")
         data = _fetch_cached(ticker, api_key)
-        if data:
+        if data and "_error" not in data:
             results[ticker] = data
+        elif data and "_error" in data:
+            st.error(f"❌ {ticker} 오류: {data['_error']}")
         else:
             st.warning(f"⚠️ {ticker} 데이터 없음 — 건너뜀")
         bar.progress((i + 1) / len(tickers), text=f"수집 중... {i + 1}/{len(tickers)}")
